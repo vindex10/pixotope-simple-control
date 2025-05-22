@@ -1,6 +1,7 @@
 use crate::color_space::{ColorSpace, ColorSpaceEntry, ColorSpacesNames, get_color_space, get_color_spaces};
 use crate::input_output::{InputOutput, InputOutputs, get_input_output, INPUT_OUTPUTS};
 use crate::cameras::{Cameras, get_cameras};
+use crate::common::{set_if_changed, set_vec_if_changed};
 use std::sync::Mutex;
 use tauri::State;
 use std::collections::HashSet;
@@ -59,18 +60,9 @@ pub fn get_current_state() -> (ColorSpace, InputOutput, Cameras) {
 pub fn merge_state(app: tauri::AppHandle, new_state: (ColorSpace, InputOutput, Cameras)) -> Updates {
     let state = app.state::<AppStateMutex>();
     let app_state = state.lock().unwrap();
-    let mut new_color_space = None;
-    if new_state.0 != app_state.color_space {
-        new_color_space = Some(new_state.0.clone());
-    }
-    let mut new_input_output = None;
-    if new_state.1 != app_state.input_output {
-        new_input_output = Some(new_state.1.clone());
-    }
-    let mut new_cameras = None;
-    if new_state.2 != app_state.cameras {
-        new_cameras = Some(new_state.2.clone());
-    }
+    let new_color_space = set_if_changed(&app_state.color_space, &new_state.0);
+    let new_input_output = set_if_changed(&app_state.input_output, &new_state.1);
+    let new_cameras = set_vec_if_changed(app_state.cameras.clone(), new_state.2);
     Updates {
         current_color_space: new_color_space,
         current_input_output: new_input_output,

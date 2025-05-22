@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use tauri_plugin_http::reqwest;
 use std::sync::LazyLock;
 
@@ -31,4 +32,18 @@ pub fn set_pixotope_property(property: &str, value: &str, target: &str) {
         PIXOTOPE_ENDPOINT.as_str(), property, value, target
     );
     reqwest::blocking::get(url).unwrap();
+}
+
+pub fn set_if_changed(orig: &str, new: &str) -> Option<String> {
+    if orig == new {
+        return None;
+    }
+    Some(new.to_string())
+}
+
+pub fn set_vec_if_changed(orig: Vec<String>, new: Vec<String>) -> Option<Vec<String>> {
+    if HashSet::<String>::from_iter(orig).symmetric_difference(&HashSet::<String>::from_iter(new.clone())).count() == 0 {
+        return None;
+    }
+    Some(new)
 }
